@@ -6,6 +6,18 @@
             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">REKAP ABSENSI HARIAN</h1>
             <p class="text-sm text-slate-500 mt-1">Laporan harian kehadiran seluruh guru.</p>
         </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.attendances.create-manual', ['date' => $date->format('Y-m-d')]) }}" class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-bold transition-colors shadow-sm">
+                + Tambah Manual
+            </a>
+            <a href="{{ route('admin.export.daily', ['date' => $date->format('Y-m-d'), 'status' => request('status'), 'search' => request('search')]) }}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Export Excel
+            </a>
+        </div>
     </div>
 
     <!-- Filter Bar -->

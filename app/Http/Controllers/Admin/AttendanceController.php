@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Teacher;
+use App\Exports\DailyAttendanceExport;
+use App\Exports\MonthlyAttendanceExport;
+use App\Exports\YearlyAttendanceExport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AttendanceController extends Controller
 {
@@ -33,6 +37,47 @@ class AttendanceController extends Controller
             'todayCount' => $todayCount,
             'date' => $today,
         ]);
+    }
+
+    public function createManual(Request $request)
+    {
+        $teachers = Teacher::active()->orderBy('name')->get();
+        return view('admin.attendances.create-manual', [
+            'title' => 'Input Absensi Manual',
+            'teachers' => $teachers,
+            'defaultDate' => $request->date ?? Carbon::today()->format('Y-m-d'),
+        ]);
+    }
+
+    public function storeManual(Request $request)
+    {
+        $request->validate([
+            'teacher_id' => 'required|exists:teachers,id',
+            'date' => 'required|date',
+            'status' => 'required|in:Hadir,Terlambat,Izin,Sakit,Alpa',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        // Check if attendance already exists for this date
+        $exists = Attendance::where('teacher_id', $request->teacher_id)
+            ->whereDate('date', $request->date)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'Data absensi untuk guru ini pada tanggal tersebut sudah ada! Silakan edit data yang sudah ada.');
+        }
+
+        Attendance::create([
+            'teacher_id' => $request->teacher_id,
+            'date' => $request->date,
+            'status' => $request->status,
+            'notes' => $request->notes,
+            // Automatically set time for Hadir/Terlambat to avoid nulls if needed, or leave null for manual entry
+            'check_in' => in_array($request->status, ['Hadir', 'Terlambat']) ? '07:00:00' : null,
+            'check_out' => in_array($request->status, ['Hadir', 'Terlambat']) ? '15:00:00' : null,
+        ]);
+
+        return back()->with('success', 'Data absensi manual berhasil ditambahkan!');
     }
 
     public function show(Attendance $attendance)
@@ -162,16 +207,47 @@ class AttendanceController extends Controller
 
     public function exportDaily(Request $request)
     {
-        return back()->with('success', 'Fitur export dalam pengembangan.');
+        $date = $request->filled('date') ? $request->date : Carbon::today()->format('Y-m-d');
+        $filename = 'Rekap-Harian-' . $date . '.xlsx';
+
+        if (ob_get_length() > 0) { ob_end_clean(); }
+
+        return Excel::download(
+            new DailyAttendanceExport($date, $request->status, $request->search),
+            $filename,
+            \Maatwebsite\Excel\Excel::XLSX,
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        );
     }
 
     public function exportMonthly(Request $request)
     {
-        return back()->with('success', 'Fitur export dalam pengembangan.');
+        $month = $request->filled('month') ? $request->month : Carbon::now()->format('Y-m');
+        $filename = 'Rekap-Bulanan-' . $month . '.xlsx';
+
+        if (ob_get_length() > 0) { ob_end_clean(); }
+
+        return Excel::download(
+            new MonthlyAttendanceExport($month),
+            $filename,
+            \Maatwebsite\Excel\Excel::XLSX,
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        );
     }
 
     public function exportYearly(Request $request)
     {
-        return back()->with('success', 'Fitur export dalam pengembangan.');
+        $year = $request->filled('year') ? $request->year : Carbon::now()->year;
+        $filename = 'Rekap-Tahunan-' . $year . '.xlsx';
+
+        if (ob_get_length() > 0) { ob_end_clean(); }
+
+        return Excel::download(
+            new YearlyAttendanceExport($year),
+            $filename,
+            \Maatwebsite\Excel\Excel::XLSX,
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        );
     }
 }
+

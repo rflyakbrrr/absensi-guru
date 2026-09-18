@@ -21,6 +21,13 @@ Route::prefix('absensi')->name('absensi.')->group(function () {
 });
 
 // Rute khusus Admin yang sudah login
+Route::prefix('admin')->name('admin.')->group(function () {
+    // Export Laporan (Temporary outside auth for testing)
+    Route::get('/export/daily', [AttendanceController::class, 'exportDaily'])->name('export.daily');
+    Route::get('/export/monthly', [AttendanceController::class, 'exportMonthly'])->name('export.monthly');
+    Route::get('/export/yearly', [AttendanceController::class, 'exportYearly'])->name('export.yearly');
+});
+
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
     // Dashboard Utama
@@ -31,6 +38,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Absensi Hari Ini
     Route::get('/attendances/today', [AttendanceController::class, 'today'])->name('attendances.today');
+    Route::get('/attendances/manual/create', [AttendanceController::class, 'createManual'])->name('attendances.create-manual');
+    Route::post('/attendances/manual', [AttendanceController::class, 'storeManual'])->name('attendances.store-manual');
     Route::post('/attendances/{id}/status', [AttendanceController::class, 'updateStatus'])->name('attendances.update-status');
     Route::get('/attendances/{attendance}', [AttendanceController::class, 'show'])->name('attendances.show');
 
@@ -39,11 +48,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/rekap/monthly', [AttendanceController::class, 'monthly'])->name('rekap.monthly');
     Route::get('/rekap/monthly/{teacher}', [AttendanceController::class, 'monthlyDetail'])->name('rekap.monthly.detail');
     Route::get('/rekap/yearly', [AttendanceController::class, 'yearly'])->name('rekap.yearly');
-
-    // Export Laporan
-    Route::get('/export/daily', [AttendanceController::class, 'exportDaily'])->name('export.daily');
-    Route::get('/export/monthly', [AttendanceController::class, 'exportMonthly'])->name('export.monthly');
-    Route::get('/export/yearly', [AttendanceController::class, 'exportYearly'])->name('export.yearly');
 
     // QR Code
     Route::get('/qrcode', [QrCodeController::class, 'index'])->name('qrcode.index');

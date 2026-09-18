@@ -7,6 +7,9 @@
             <p class="text-sm text-slate-500 mt-1">Daftar kehadiran guru pada {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}.</p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('admin.attendances.create-manual', ['date' => $date->format('Y-m-d')]) }}" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold transition-colors shadow-sm">
+                + Tambah Manual
+            </a>
             <div class="px-4 py-2 bg-sky-50 border border-sky-100 rounded-xl text-sky-700 text-xs font-semibold">
                 Guru Absen: <span class="font-extrabold text-sky-800">{{ $todayCount }} / {{ $totalTeachers }}</span>
             </div>

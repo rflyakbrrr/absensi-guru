@@ -45,9 +45,9 @@ class AbsensiController extends Controller
     {
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
-            'latitude' => 'nullable|string',
-            'longitude' => 'nullable|string',
-            'accuracy' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'accuracy' => 'nullable|numeric',
             'type' => 'required|in:check_in,check_out',
         ]);
 
