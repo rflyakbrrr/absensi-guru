@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\QrCodeController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\ProfileController;
 
 // Landing page redirect ke login
 Route::get('/', function () {
@@ -21,13 +22,6 @@ Route::prefix('absensi')->name('absensi.')->group(function () {
 });
 
 // Rute khusus Admin yang sudah login
-Route::prefix('admin')->name('admin.')->group(function () {
-    // Export Laporan (Temporary outside auth for testing)
-    Route::get('/export/daily', [AttendanceController::class, 'exportDaily'])->name('export.daily');
-    Route::get('/export/monthly', [AttendanceController::class, 'exportMonthly'])->name('export.monthly');
-    Route::get('/export/yearly', [AttendanceController::class, 'exportYearly'])->name('export.yearly');
-});
-
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
     // Dashboard Utama
@@ -49,6 +43,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/rekap/monthly/{teacher}', [AttendanceController::class, 'monthlyDetail'])->name('rekap.monthly.detail');
     Route::get('/rekap/yearly', [AttendanceController::class, 'yearly'])->name('rekap.yearly');
 
+    // Export Laporan
+    Route::get('/export/daily', [AttendanceController::class, 'exportDaily'])->name('export.daily');
+    Route::get('/export/monthly', [AttendanceController::class, 'exportMonthly'])->name('export.monthly');
+    Route::get('/export/yearly', [AttendanceController::class, 'exportYearly'])->name('export.yearly');
+
     // QR Code
     Route::get('/qrcode', [QrCodeController::class, 'index'])->name('qrcode.index');
     Route::get('/qrcode/print', [QrCodeController::class, 'print'])->name('qrcode.print');
@@ -59,6 +58,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 
+});
+
+// Rute Profil Admin
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // Override Breeze dashboard redirect

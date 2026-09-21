@@ -114,7 +114,7 @@ class AbsensiController extends Controller
             // Determine status
             $status = $now->lte($lateAfter) ? Attendance::STATUS_HADIR : Attendance::STATUS_TERLAMBAT;
 
-            Attendance::create([
+            $attendanceData = [
                 'teacher_id' => $teacher->id,
                 'date' => $today,
                 'check_in' => $now->toTimeString(),
@@ -125,7 +125,13 @@ class AbsensiController extends Controller
                 'distance' => $distance ? round($distance, 2) : null,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-            ]);
+            ];
+
+            if ($existingAttendance) {
+                $existingAttendance->update($attendanceData);
+            } else {
+                Attendance::create($attendanceData);
+            }
 
             return response()->json([
                 'success' => true,

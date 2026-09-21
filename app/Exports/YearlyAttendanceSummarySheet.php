@@ -101,43 +101,14 @@ class YearlyAttendanceSummarySheet implements FromArray, WithHeadings, WithStyle
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
+
+                // 1. Insert 2 title rows at the top first
+                $sheet->insertNewRowBefore(1, 2);
+
                 $lastRow = $sheet->getHighestRow();
                 $lastCol = $sheet->getHighestColumn();
 
-                // Borders
-                $sheet->getStyle("A1:{$lastCol}{$lastRow}")->applyFromArray([
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                            'color' => ['rgb' => 'D1D5DB'],
-                        ],
-                    ],
-                ]);
-
-                // Create Native Excel Table
-                $newLastRow = $lastRow + 2; // offset by inserted rows
-                if ($newLastRow > 3) {
-                    $table = new Table();
-                    $table->setName('TableYearlySummary');
-                    $table->setRange("A3:{$lastCol}{$newLastRow}");
-                    $tableStyle = new TableStyle();
-                    $tableStyle->setTheme(TableStyle::TABLE_STYLE_MEDIUM4);
-                    $tableStyle->setShowRowStripes(true);
-                    $table->setStyle($tableStyle);
-                    $sheet->addTable($table);
-                }
-
-                // Center data columns
-                $sheet->getStyle("B2:G{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-                // Bold total row
-                $sheet->getStyle("A{$lastRow}:G{$lastRow}")->applyFromArray([
-                    'font' => ['bold' => true, 'size' => 11],
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F0FDF4']],
-                ]);
-
-                // Title rows
-                $sheet->insertNewRowBefore(1, 2);
+                // 2. Add title rows content and style
                 $sheet->setCellValue('A1', 'REKAP ABSENSI TAHUNAN');
                 $sheet->setCellValue('A2', 'Tahun: ' . $this->year);
                 $sheet->mergeCells("A1:{$lastCol}1");
@@ -151,6 +122,40 @@ class YearlyAttendanceSummarySheet implements FromArray, WithHeadings, WithStyle
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
+                // 3. Add borders to header & data table (Row 3 to lastRow)
+                $sheet->getStyle("A3:{$lastCol}{$lastRow}")->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color' => ['rgb' => 'D1D5DB'],
+                        ],
+                    ],
+                ]);
+
+                // 4. Center data columns (Row 4 to lastRow)
+                if ($lastRow >= 4) {
+                    $sheet->getStyle("B4:G{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                    // Bold total row
+                    $sheet->getStyle("A{$lastRow}:G{$lastRow}")->applyFromArray([
+                        'font' => ['bold' => true, 'size' => 11],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F0FDF4']],
+                    ]);
+                }
+
+                // 5. Create Native Excel Table (Row 3 is header, 4..lastRow is data)
+                if ($lastRow >= 4) {
+                    $table = new Table();
+                    $table->setName('TableYearlySummary');
+                    $table->setRange("A3:{$lastCol}{$lastRow}");
+                    $tableStyle = new TableStyle();
+                    $tableStyle->setTheme(TableStyle::TABLE_STYLE_MEDIUM4);
+                    $tableStyle->setShowRowStripes(true);
+                    $table->setStyle($tableStyle);
+                    $sheet->addTable($table);
+                }
+
+                // 6. Freeze header row (Row 3)
                 $sheet->freezePane('A4');
             },
         ];

@@ -111,34 +111,14 @@ class DailyAttendanceExport implements FromCollection, WithHeadings, WithMapping
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
+
+                // 1. Insert 2 title rows at the top first
+                $sheet->insertNewRowBefore(1, 2);
+
                 $lastRow = $sheet->getHighestRow();
                 $lastCol = $sheet->getHighestColumn();
 
-                // Add borders to all data (will be applied to A3:H... after insertion)
-                $sheet->getStyle("A1:{$lastCol}{$lastRow}")->applyFromArray([
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                            'color' => ['rgb' => 'D1D5DB'],
-                        ],
-                    ],
-                ]);
-
-                // Create Native Excel Table
-                $newLastRow = $lastRow + 2; // offset by inserted rows
-                if ($newLastRow > 3) {
-                    $table = new Table();
-                    $table->setName('TableDaily');
-                    $table->setRange("A3:{$lastCol}{$newLastRow}");
-                    $tableStyle = new TableStyle();
-                    $tableStyle->setTheme(TableStyle::TABLE_STYLE_MEDIUM4);
-                    $tableStyle->setShowRowStripes(true);
-                    $table->setStyle($tableStyle);
-                    $sheet->addTable($table);
-                }
-
-                // Add title rows above data
-                $sheet->insertNewRowBefore(1, 2);
+                // 2. Add title rows content and style
                 $sheet->setCellValue('A1', 'REKAP ABSENSI HARIAN');
                 $sheet->setCellValue('A2', 'Tanggal: ' . $this->date->translatedFormat('l, d F Y'));
                 $sheet->mergeCells("A1:{$lastCol}1");
@@ -152,7 +132,35 @@ class DailyAttendanceExport implements FromCollection, WithHeadings, WithMapping
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
-                // Freeze header row
+                // 3. Add borders to header & data table (Row 3 to lastRow)
+                $sheet->getStyle("A3:{$lastCol}{$lastRow}")->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color' => ['rgb' => 'D1D5DB'],
+                        ],
+                    ],
+                ]);
+
+                // 4. Center data columns (Row 4 to lastRow)
+                if ($lastRow >= 4) {
+                    $sheet->getStyle("A4:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("D4:G{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                }
+
+                // 5. Create Native Excel Table (Row 3 is header, 4..lastRow is data)
+                if ($lastRow >= 4) {
+                    $table = new Table();
+                    $table->setName('TableDaily');
+                    $table->setRange("A3:{$lastCol}{$lastRow}");
+                    $tableStyle = new TableStyle();
+                    $tableStyle->setTheme(TableStyle::TABLE_STYLE_MEDIUM4);
+                    $tableStyle->setShowRowStripes(true);
+                    $table->setStyle($tableStyle);
+                    $sheet->addTable($table);
+                }
+
+                // 6. Freeze header row (Row 3)
                 $sheet->freezePane('A4');
             },
         ];
