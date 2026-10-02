@@ -192,7 +192,7 @@ class AttendanceController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:Hadir,Terlambat,Izin,Sakit,Alpa',
+            'status' => 'required|in:Hadir,Terlambat,Pulang,Izin,Sakit,Alpa',
             'notes' => 'nullable|string|max:500',
         ]);
 

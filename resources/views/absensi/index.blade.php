@@ -124,7 +124,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 2px solid rgba(255, 255, 255, 1);
-            border-radius: 2rem; /* Reduced from 2.75rem for wider feel on mobile */
+            border-radius: 2rem;
             box-shadow: 
                 0 30px 60px -12px rgba(13, 148, 136, 0.22),
                 0 18px 36px -18px rgba(15, 23, 42, 0.12),
@@ -175,8 +175,8 @@
         }
         .segmented-btn-3d {
             flex: 1;
-            padding: 14px 0; /* Increased from 12px */
-            font-size: 14px; /* Increased from 13px */
+            padding: 14px 0;
+            font-size: 14px;
             font-weight: 800;
             letter-spacing: 0.5px;
             border-radius: 1rem;
@@ -675,6 +675,66 @@
     </div>
 
     <script>
+        // ============================================================
+        // 🔊 AUDIO ENGINE — Web Audio API (no external files needed)
+        // ============================================================
+        const AudioEngine = {
+            ctx: null,
+
+            getCtx() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                return this.ctx;
+            },
+
+            tone(freq, start, duration, volume = 0.4, type = 'sine') {
+                const ctx = this.getCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+                gain.gain.setValueAtTime(0, ctx.currentTime + start);
+                gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + start + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+                osc.start(ctx.currentTime + start);
+                osc.stop(ctx.currentTime + start + duration + 0.05);
+            },
+
+            /** 🟢 Suara MASUK — nada naik ceria seperti "ding ding ding!" */
+            playCheckIn() {
+                this.tone(523, 0.00, 0.18, 0.35, 'sine');
+                this.tone(659, 0.16, 0.18, 0.35, 'sine');
+                this.tone(784, 0.32, 0.18, 0.35, 'sine');
+                this.tone(1047, 0.48, 0.38, 0.40, 'sine');
+                this.tone(2093, 0.48, 0.28, 0.08, 'sine');
+            },
+
+            /** 🔵 Suara PULANG — nada turun lembut */
+            playCheckOut() {
+                this.tone(784, 0.00, 0.22, 0.35, 'sine');
+                this.tone(659, 0.20, 0.22, 0.35, 'sine');
+                this.tone(523, 0.40, 0.40, 0.38, 'sine');
+                this.tone(523, 0.60, 0.25, 0.12, 'sine');
+            },
+
+            /** 🔴 Suara ERROR — buzz pendek */
+            playError() {
+                this.tone(220, 0.00, 0.12, 0.30, 'square');
+                this.tone(180, 0.13, 0.12, 0.25, 'square');
+                this.tone(150, 0.26, 0.18, 0.20, 'square');
+            },
+
+            play(type, success) {
+                try {
+                    if (!success) { this.playError(); return; }
+                    if (type === 'check_in') { this.playCheckIn(); } else { this.playCheckOut(); }
+                } catch (e) {}
+            }
+        };
+
         function absensiApp() {
             return {
                 step: 'form',
@@ -735,9 +795,9 @@
                     }
                     this.errorMessage = '';
                     this.loading = true;
-                    
+
                     await new Promise(r => setTimeout(r, 400));
-                    
+
                     this.step = 'processing';
                     this.processStep = 0;
 
@@ -769,6 +829,9 @@
 
                         const data = await res.json();
                         if (data.success) {
+                            // 🔊 Putar suara sukses sesuai tipe absensi
+                            AudioEngine.play(this.type, true);
+
                             this.successData = {
                                 title: data.message,
                                 teacher_name: data.data.teacher_name,
@@ -777,10 +840,14 @@
                             };
                             this.step = 'success';
                         } else {
+                            // 🔊 Putar suara error
+                            AudioEngine.play(this.type, false);
+
                             this.step = 'form';
                             this.errorMessage = data.message || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Terjadi kesalahan sistem.');
                         }
                     } catch (e) {
+                        AudioEngine.play(this.type, false);
                         this.step = 'form';
                         this.errorMessage = 'Kesalahan jaringan: ' + e.message;
                     } finally {
@@ -800,4 +867,3 @@
     </script>
 </body>
 </html>
-

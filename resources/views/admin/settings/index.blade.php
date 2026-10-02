@@ -61,31 +61,31 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label for="check_in_start" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Jam Mulai Masuk</label>
-                    <input type="time" name="check_in_start" id="check_in_start" value="{{ old('check_in_start', $setting->check_in_start) }}" required
+                    <input type="time" name="check_in_start" id="check_in_start" value="{{ old('check_in_start', substr($setting->check_in_start, 0, 5)) }}" required
                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400/20">
                 </div>
 
                 <div>
                     <label for="check_in_end" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Batas Akhir Masuk</label>
-                    <input type="time" name="check_in_end" id="check_in_end" value="{{ old('check_in_end', $setting->check_in_end) }}" required
+                    <input type="time" name="check_in_end" id="check_in_end" value="{{ old('check_in_end', substr($setting->check_in_end, 0, 5)) }}" required
                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400/20">
                 </div>
 
                 <div>
                     <label for="late_after" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Dianggap Terlambat Setelah</label>
-                    <input type="time" name="late_after" id="late_after" value="{{ old('late_after', $setting->late_after) }}" required
+                    <input type="time" name="late_after" id="late_after" value="{{ old('late_after', substr($setting->late_after, 0, 5)) }}" required
                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400/20">
                 </div>
 
                 <div>
                     <label for="check_out_start" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Jam Mulai Pulang</label>
-                    <input type="time" name="check_out_start" id="check_out_start" value="{{ old('check_out_start', $setting->check_out_start) }}" required
+                    <input type="time" name="check_out_start" id="check_out_start" value="{{ old('check_out_start', substr($setting->check_out_start, 0, 5)) }}" required
                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400/20">
                 </div>
 
                 <div>
                     <label for="check_out_end" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Batas Akhir Pulang</label>
-                    <input type="time" name="check_out_end" id="check_out_end" value="{{ old('check_out_end', $setting->check_out_end) }}" required
+                    <input type="time" name="check_out_end" id="check_out_end" value="{{ old('check_out_end', substr($setting->check_out_end, 0, 5)) }}" required
                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400/20">
                 </div>
             </div>

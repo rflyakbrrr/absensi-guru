@@ -56,6 +56,13 @@ class AbsensiController extends Controller
         $now = Carbon::now();
         $today = $now->toDateString();
 
+        if (!$setting) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Konfigurasi sistem belum diatur. Hubungi administrator.',
+            ], 500);
+        }
+
         if (!$teacher->status) {
             return response()->json([
                 'success' => false,
@@ -101,17 +108,18 @@ class AbsensiController extends Controller
 
             // Check time window
             $checkInStart = Carbon::parse($today . ' ' . $setting->check_in_start);
-            $checkInEnd = Carbon::parse($today . ' ' . $setting->check_in_end);
-            $lateAfter = Carbon::parse($today . ' ' . $setting->late_after);
+            $lateAfter = Carbon::parse($today . ' ' . $setting->late_after)->endOfMinute();
+
+            $displayStart = substr($setting->check_in_start, 0, 5);
 
             if ($now->lt($checkInStart)) {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Absensi belum dapat dilakukan. Jam absensi masuk dimulai pukul ' . $setting->check_in_start,
+                    'message' => '❌ Absensi belum dapat dilakukan. Jam absensi masuk dimulai pukul ' . $displayStart,
                 ], 422);
             }
 
-            // Determine status
+            // Determine status — lewat late_after = Terlambat, tapi tetap boleh absen
             $status = $now->lte($lateAfter) ? Attendance::STATUS_HADIR : Attendance::STATUS_TERLAMBAT;
 
             $attendanceData = [
@@ -161,11 +169,28 @@ class AbsensiController extends Controller
             }
 
             $checkOutStart = Carbon::parse($today . ' ' . $setting->check_out_start);
+            $checkOutEnd = Carbon::parse($today . ' ' . $setting->check_out_end);
+
+            if ($checkOutEnd->lt($checkOutStart)) {
+                $checkOutEnd->addDay();
+            } else {
+                $checkOutEnd->endOfMinute();
+            }
+
+            $displayStart = substr($setting->check_out_start, 0, 5);
+            $displayEnd = substr($setting->check_out_end, 0, 5);
 
             if ($now->lt($checkOutStart)) {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Absensi pulang belum dapat dilakukan. Jam pulang dimulai pukul ' . $setting->check_out_start,
+                    'message' => '❌ Absensi pulang belum dapat dilakukan. Jam pulang dimulai pukul ' . $displayStart,
+                ], 422);
+            }
+
+            if ($now->gt($checkOutEnd)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Absensi pulang sudah ditutup. Batas akhir pulang pukul ' . $displayEnd,
                 ], 422);
             }
 

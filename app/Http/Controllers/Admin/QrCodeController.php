@@ -57,11 +57,12 @@ class QrCodeController extends Controller
     public function toggle()
     {
         $setting = Setting::instance();
+        $newValue = !$setting->qr_active;
         $setting->update([
-            'qr_active' => !$setting->qr_active,
+            'qr_active' => $newValue,
         ]);
 
-        $statusText = $setting->qr_active ? 'diaktifkan' : 'dinonaktifkan';
+        $statusText = $newValue ? 'diaktifkan' : 'dinonaktifkan';
         return back()->with('success', "Sistem QR Code Absensi berhasil {$statusText}.");
     }
 }

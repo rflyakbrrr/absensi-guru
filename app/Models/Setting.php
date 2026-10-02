@@ -11,6 +11,7 @@ class Setting extends Model
 
     protected $fillable = [
         'school_name',
+        'school_address',
         'school_logo',
         'latitude',
         'longitude',
@@ -36,10 +37,25 @@ class Setting extends Model
     ];
 
     /**
-     * Get singleton setting instance.
+     * Get singleton setting instance or create default if not exists.
      */
     public static function instance(): self
     {
-        return self::firstOrFail();
+        return self::firstOrCreate([], [
+            'school_name' => 'SMK Negeri 1 Contoh',
+            'school_address' => 'Jl. Pendidikan No. 123',
+            'latitude' => -6.200000,
+            'longitude' => 106.816666,
+            'radius' => 100,
+            'check_in_start' => '06:00',
+            'check_in_end' => '08:00',
+            'late_after' => '07:15',
+            'check_out_start' => '14:00',
+            'check_out_end' => '17:00',
+            'selfie_enabled' => false,
+            'gps_enabled' => true,
+            'qr_active' => true,
+            'maintenance_mode' => false,
+        ]);
     }
 }
